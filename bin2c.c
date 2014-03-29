@@ -23,13 +23,13 @@ main(int argc, char* argv[])
 {
     char *buf;
     char *ident;
-    unsigned int i, file_size, need_comma;
+    unsigned int i, file_size, need_comma, n, pad;
     struct stat st;
 
     FILE *f_input, *f_output;
 
     if (argc < 4) {
-        fprintf(stderr, "Usage: %s binary_file output_file array_name\n", argv[0]);
+        fprintf(stderr, "Usage: %s binary_file output_file array_name [pad]\n", argv[0]);
         return -1;
     }
 
@@ -61,14 +61,34 @@ main(int argc, char* argv[])
     
     need_comma = 0;
 
-    fprintf (f_output, "unsigned char %s[] = {", ident, file_size);
+    fprintf (f_output, "unsigned char %s[] = {", ident);
     for (i = 0; i < file_size; ++i)
     {
-        if (need_comma) fprintf(f_output, ", ");
+        if (need_comma) fprintf(f_output, ",");
         else need_comma = 1;
-        if (( i % 11 ) == 0) fprintf(f_output, "\n\t");
+        if (( i % 8 ) == 0) fprintf(f_output, "\n\t");
+        else fprintf(f_output, " ");
         fprintf(f_output, "0x%.2x", buf[i] & 0xff);
     }
+
+    if (argc > 4)
+        pad = atoi(argv[4]);
+    else
+        pad = 1;
+    if (pad > 1) {
+        n = file_size % pad;
+        file_size += pad - n;
+
+        for (; i < file_size; ++i)
+        {
+            if (need_comma) fprintf(f_output, ",");
+            else need_comma = 1;
+            if (( i % 8 ) == 0) fprintf(f_output, "\n\t");
+            else fprintf(f_output, " ");
+            fprintf(f_output, "0x00");
+        }
+    }
+
     fprintf(f_output, "\n};\n\n");
 
     fprintf(f_output, "const unsigned int %s_len = %i;\n\n", ident, file_size);
