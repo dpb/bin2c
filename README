@@ -1,0 +1,1 @@
+This bin2c converts a binary to a C file, in the same output as the syslinux bin2c.pl perl script.
